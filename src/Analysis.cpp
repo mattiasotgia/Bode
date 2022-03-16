@@ -195,33 +195,24 @@ Bool_t Bode::SetPhaseVec(std::vector<Double_t> Phase, std::vector<Double_t> ErrP
 void Bode::SetSystem(System_t sys){
     fSystem = sys;
     switch(sys.Hash()){
-        case op_amp_lp:
-        case OP_AMP_LP:
+        case lowpass:
             _gainfit = "[0]/sqrt(1+pow(x/[1], 2))";
             _phasefit = "";
             break;
-        case op_amp_hp:
-        case OP_AMP_HP:
+        case highpass:
             _gainfit = "";
             _phasefit = "";
             break;
-        case rlc_lp:
-        case RLC_LP:
-            _gainfit = "";
-            _phasefit = "";
-            break;
-        case rlc_hp:
-        case RLC_HP:
-            _gainfit = "";
-            _phasefit = "";
-            break;
-        case rlc_bp:
-        case RLC_BP:
+        case bandpass:
             _gainfit = "";
             _phasefit = "";
             break;
         default:
-            fprintf(stderr, "%s", Logger::warning(Form("System_t option '%s' not recognised", sys.Data())));
+            fprintf(stderr, "%s", Logger::warning(Form("System_t option '%s' not recognised!\n 
+            Available options are: \n
+            \t\"lowpass\" 
+            \t\"highpass\" 
+            \t\"bandpass\" ", sys.Data())));
     }
 }
 

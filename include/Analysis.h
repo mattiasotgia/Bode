@@ -9,8 +9,8 @@
  * 
  */
 
-#ifndef LABTOOLS_BODE_Analysis
-#define LABTOOLS_BODE_Analysis
+#ifndef BODE_Analysis
+#define BODE_Analysis
 
 #include<iostream>
 #include<vector>
@@ -30,16 +30,10 @@ class Bode{
 private:
     // miscellaneous
     enum {
-        OP_AMP_HP = 1991226620,
-        OP_AMP_LP = 4138710268,
-        RLC_HP    = 3899251227,
-        RLC_LP    = 3899252251,
-        RLC_BP    = 3899248667,
-        op_amp_hp = 1982541912,
-        op_amp_lp = 4130025560,
-        rlc_hp    = 3966631483,
-        rlc_lp    = 3966630459,
-        rlc_bp    = 3966628923
+        lowpass     = 244089597,    // "lowpass"
+        highpass    = 2141088893,   // "highpass"
+        bandpass    = 4273958204    // "bandpass"
+
     };
 
     System_t            fSystem = "";
@@ -91,6 +85,7 @@ public:
     Bode(System_t sys);                                             ///> sys: OP_AMP: 0x1 high pass, 0x2 low pass; RLC 0x101 high pass, 0x102 low pass, 0x103 band pass;
     Bode(System_t sys, const char *filename, Option_t *option="");  ///> sys: OP_AMP: 0x1 high pass, 0x2 low pass; RLC 0x101 high pass, 0x102 low pass, 0x103 band pass;
     ~Bode();
+    Bool_t              FitGain(Option_t *option="", Option_t *goption="", Axis_t xmin=0, Axis_t xmax=0);
     Bool_t              FitCorrelated(Option_t *option="", Option_t *goption="", Axis_t xmin=0, Axis_t xmax=0);
     inline Double_t     GetCutoff()     const { return gCutoff; }
     inline Double_t     GetErrCutoff()  const { return gErrCutoff; }
@@ -116,7 +111,7 @@ public:
     Bool_t              SetPhaseVec(std::vector<Double_t> Phase, std::vector<Double_t> ErrPhase);
     void                SetLogx();
     void                SetLogy();
-    void         SetSystem(System_t sys);
+    void                SetSystem(System_t sys);
     inline void         SetResidual(bool residual = true) { _residualOn = residual; }
 };
 
