@@ -26,7 +26,7 @@ set(BODESRC
 add_compile_options(-I${ROOT_INCLUDE_DIRS})
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
-add_library(Bode SHARED ${LIBSRC} ${BODESRC})
+add_library(Bode SHARED ${BODESRC})
 
 target_link_libraries(Bode ${ROOT_LIBRARIES} ${ERR_A_LIB} ${LAB_LIB})
 target_include_directories(Bode PUBLIC ${ERR_A_PATH} ${LAB_PATH})

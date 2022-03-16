@@ -40,6 +40,7 @@ private:
 
     bool                _isfunctioncalled = false; ///> check if user called for function different from base;
     bool                _residualOn = false;
+    bool                _islowhighpass = true;
 
     // font size for calling ATLASStyle
     Size_t              tsize = 29;
@@ -47,8 +48,9 @@ private:
     // phase and gain fit formula
     const char         *_gainfit = "";  // todo: fill function
     const char         *_phasefit = ""; // todo: fill function
-    NPar_t              _CutoffPar;
-    NPar_t              _GainPar;
+    NPar_t        _CutoffPar = 0;
+    NPar_t        _GainPar = 1;
+    NPar_t        _QPar = 2;
 
     // computational values;
     Double_t            gGWB;       ///> Gain Bandwidth coefficient
@@ -70,18 +72,18 @@ private:
     /// function variables declaration
     Double_t            fmin = (0.0);   ///> minimum for frequency range
     Double_t            fmax = (1.0);   ///> maximum for frequency range
-    Double_t            fNpoints;        ///> points in graph
+    Double_t            fNpoints = -1;       ///> points in graph
     Double_t           *fPointGain;     ///>[fNpoints] array for gain points
     Double_t           *fPErrGain;      ///>[fNpoints] array for error gain points
     Double_t           *fPointPhase;    ///>[fNpoints] array for phase points
     Double_t           *fPErrPhase;     ///>[fNpoints] array for error phase points
-    Double_t           *fPointFreq;
-    Double_t           *fPErrFreq;
+    Double_t           *fPointFreq;     ///>[fNpoints] array for frequency points
+    Double_t           *fPErrFreq;      ///>[fNpoints] array for error frequency points
 
     // miscellaneous
     void                _apply_LineColor();
 public:
-    Bode();
+    // Bode();
     Bode(System_t sys);                                             ///> sys: OP_AMP: 0x1 high pass, 0x2 low pass; RLC 0x101 high pass, 0x102 low pass, 0x103 band pass;
     Bode(System_t sys, const char *filename, Option_t *option="");  ///> sys: OP_AMP: 0x1 high pass, 0x2 low pass; RLC 0x101 high pass, 0x102 low pass, 0x103 band pass;
     ~Bode();
@@ -100,13 +102,14 @@ public:
     // bool                ReadInputGain(const char *filename, Option_t *option="");   ///> read input for gain data
     // bool                ReadInputPhase(const char *filename, Option_t *option="");  ///> read input for phase data
     // bool                ReadInputRDF()  // TO BE IMPLEMENTED
-    inline void         SetCutoffNpar(NPar_t npar = 0)  { _CutoffPar = npar; }
-    inline void         SetGainNpar(NPar_t npar = 1)    { _GainPar = npar; }
+    inline void         SetCutoffNpar(NPar_t npar = 1)  { _CutoffPar = npar; }
+    inline void         SetGainNpar(NPar_t npar = 0)    { _GainPar = npar; }
     Bool_t              SetFreqVec(std::vector<Double_t> Freq, std::vector<Double_t> ErrFreq);
+    Bool_t              SetFunctions();
     // void                SetGainFunction(const char *formula, Option_t *option="");
     Bool_t              SetGainVec(std::vector<Double_t> Gain, std::vector<Double_t> ErrGain);
-    void                SetParGain(Double_t *params);
-    void                SetParPhase(Double_t *params);
+    void                SetParGain(Double_t *params)    { fGainFit->SetParameters(params); }
+    void                SetParPhase(Double_t *params)   { fPhaseFit->SetParameters(params); }
     // void                SetPhaseFunction(const char *formula, Option_t *option="");
     Bool_t              SetPhaseVec(std::vector<Double_t> Phase, std::vector<Double_t> ErrPhase);
     void                SetLogx();
