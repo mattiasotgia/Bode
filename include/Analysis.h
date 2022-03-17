@@ -41,20 +41,21 @@ private:
     bool                _isfunctioncalled = false; ///> check if user called for function different from base;
     bool                _residualOn = false;
     bool                _islowhighpass = true;
+    bool                _hasfitted = false;
 
     // font size for calling ATLASStyle
     Size_t              tsize = 29;
 
     // phase and gain fit formula
-    const char         *_gainfit = "";  // todo: fill function
-    const char         *_phasefit = ""; // todo: fill function
-    NPar_t        _CutoffPar = 0;
-    NPar_t        _GainPar = 1;
-    NPar_t        _QPar = 2;
+    const char         *_gainfit  = ""; 
+    const char         *_phasefit = "";
+    NPar_t              _CutoffPar = 0;
+    NPar_t              _GainPar = 1;
+    NPar_t              _QPar = 2;
 
     // computational values;
-    Double_t            gGWB;       ///> Gain Bandwidth coefficient
-    Double_t            gErrGWB;    ///> Gain Bandwidth coefficient error
+    Double_t            gGBW;       ///> Gain Bandwidth coefficient
+    Double_t            gErrGBW;    ///> Gain Bandwidth coefficient error
     Double_t            gCutoff;    ///> Cutoff value 
     Double_t            gErrCutoff; ///> Cutoff value error
     Double_t            gGain;      ///> Gain value
@@ -88,13 +89,14 @@ public:
     Bode(System_t sys, const char *filename, Option_t *option="");  ///> sys: OP_AMP: 0x1 high pass, 0x2 low pass; RLC 0x101 high pass, 0x102 low pass, 0x103 band pass;
     ~Bode();
     Bool_t              FitGain(Option_t *option="", Option_t *goption="", Axis_t xmin=0, Axis_t xmax=0);
+    Bool_t              FitPhase(Option_t *option="", Option_t *goption="", Axis_t xmin=0, Axis_t xmax=0);
     Bool_t              FitCorrelated(Option_t *option="", Option_t *goption="", Axis_t xmin=0, Axis_t xmax=0);
     inline Double_t     GetCutoff()     const { return gCutoff; }
     inline Double_t     GetErrCutoff()  const { return gErrCutoff; }
     inline Double_t     GetErrGain()    const { return gErrGain; }
-    inline Double_t     GetErrGWB()     const { return gErrGWB; }
+    inline Double_t     GetErrGBW()     const { return gErrGBW; }
     inline Double_t     GetGain()       const { return gGain; }
-    inline Double_t     GetGWB()        const { return gGWB; }
+    inline Double_t     GetGBW()        const { return gGBW; }
     void                Plot(bool plotphase = true, bool plotgain = true);
     void                PlotGain();
     void                PlotPhase();
@@ -108,8 +110,8 @@ public:
     Bool_t              SetFunctions();
     // void                SetGainFunction(const char *formula, Option_t *option="");
     Bool_t              SetGainVec(std::vector<Double_t> Gain, std::vector<Double_t> ErrGain);
-    void                SetParGain(Double_t *params)    { fGainFit->SetParameters(params); }
-    void                SetParPhase(Double_t *params)   { fPhaseFit->SetParameters(params); }
+    void                SetParGain(Double_t gain, Double_t cutoff, Double_t Q = -1);
+    void                SetParPhase(Double_t gain, Double_t cutoff, Double_t Q = -1);
     // void                SetPhaseFunction(const char *formula, Option_t *option="");
     Bool_t              SetPhaseVec(std::vector<Double_t> Phase, std::vector<Double_t> ErrPhase);
     void                SetLogx();

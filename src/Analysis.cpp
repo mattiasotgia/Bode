@@ -26,14 +26,6 @@
 #include"LabPlot.h" // set_atlas_style() called from here
 #include"Logger.h"
 
-// Bode::Bode(){
-//     // set_atlas_style(tsize);
-//     fGain = new TGraphErrors();
-//     fPhase = new TGraphErrors();
-//     fGainFit = new TF1("gainfit", _gainfit, fmin, fmax);
-//     fPhaseFit = new TF1("phasefit", _phasefit, fmin, fmax);
-// }
-
 Bode::Bode(System_t sys){
     fSystem = sys;
     // set_atlas_style(tsize);
@@ -50,16 +42,24 @@ Bode::Bode(System_t sys, const char *filename, Option_t *option){
 
     SetSystem(sys);
 
+    ReadInput(filename, option);
+
 }
 
 void Bode::Plot(bool plotphase, bool plotgain){
     fFigure = new TCanvas("fFigure", "", 800, 600);
+    fFigure->cd();
     TLatex *text = new TLatex();
     TLegend *legend = new TLegend();
     
     fGainPad = new TPad("fGainPad", "", 0, 0, 1, 1);
+    fGainPad->SetLogx();
+    fGainPad->SetLogy();
     fPhasePad = new TPad("fPhasePad", "", 0, 0, 1, 1);
+    fPhasePad->SetLogx();
     fPhasePad->SetFillStyle(4000);
+
+    TGaxis *axis;
 
     if(plotgain){
         if(plotphase){
@@ -71,7 +71,9 @@ void Bode::Plot(bool plotphase, bool plotgain){
 
         fGainPad->cd();
         fGain->Draw("ap");
-        fGainFit->Draw("same");
+        if(_hasfitted) { fGainFit->Draw("same"); }
+        fGainPad->Modified();
+        fGainPad->Draw();
         if(plotphase){
             fGainPad->SetTicky(0);
             
@@ -85,15 +87,15 @@ void Bode::Plot(bool plotphase, bool plotgain){
 
             fPhasePad->cd();
 
-            fPhase->Draw("p");
-            fPhaseFit->Draw("same");
+            fPhase->Draw("ap");
+            if(_hasfitted) { fPhaseFit->Draw("same"); }
 
             Style_t tfont = fGain->GetHistogram()->GetYaxis()->GetTitleFont();
             Float_t tsize = fGain->GetHistogram()->GetYaxis()->GetTitleSize();
             Style_t lfont = fGain->GetHistogram()->GetYaxis()->GetLabelFont();
             Float_t lsize = fGain->GetHistogram()->GetYaxis()->GetLabelSize();
 
-            TGaxis *axis = new TGaxis(xmax, ymin, xmax, ymax, ymin, ymax, 510, "+L");
+            axis = new TGaxis(xmax, ymin, xmax, ymax, ymin, ymax, 510, "+L");
             axis->SetTitle("Phase");
             axis->SetTitleOffset(1.5);
             axis->SetTitleFont(tfont);
@@ -102,6 +104,8 @@ void Bode::Plot(bool plotphase, bool plotgain){
             axis->SetLabelSize(lsize);
             axis->SetMaxDigits(1);
             axis->Draw();
+            fPhasePad->Modified();
+            fPhasePad->Draw();
             gPad->Update();
         }
     } else {
@@ -112,9 +116,14 @@ void Bode::Plot(bool plotphase, bool plotgain){
 
         fPhasePad->cd();
         fPhase->Draw("ap");
-        fPhaseFit->Draw("same");
+        if(_hasfitted) { fPhaseFit->Draw("same"); }
+        fPhasePad->Modified();
+        fPhasePad->Draw();
         gPad->Update();
     }
+    fGainPad->Draw();
+    fPhasePad->Draw();
+    fFigure->Draw();
 }
 
 void Bode::PlotGain(){
@@ -127,7 +136,6 @@ void Bode::PlotPhase(){
 
 double get_VRangeErr(double errPercent, int partitions, double range1){return errPercent * partitions *  range1;}
 double get_TRangeErr(double range1, double errPercent = 0.0016, int partition = 10){return range1 * errPercent * partition;}
-double getH(double vin, double vout){return vout / vin;}
 double get_HErr(double Vin, double Vout, double eVin, double eVout){ return sqrt(pow(eVout / Vin, 2) + pow(eVin * Vout / pow(Vin, 2), 2));}
 double get_phi(double T, double dt){return 2 * M_PI * dt / T;}
 double get_phiErr(double T, double dt, double eT, double edt){return 2 * M_PI * sqrt(pow(edt/T, 2) + pow(dt * eT/(pow(T, 2)), 2));}
@@ -159,7 +167,7 @@ Bool_t Bode::ReadInput(const char *filename, Option_t *option){
 
         tmpfreq.push_back(1/T);
         tmpfreqerr.push_back(eT/pow(T, 2));
-        tmpgain.push_back(getH(Vin, Vout));
+        tmpgain.push_back(Vout/Vin);
         tmpgainerr.push_back(get_HErr(Vin, Vout, eVin, eVout));
         tmpphase.push_back(get_phi(T, dt));
         tmpphaseerr.push_back(get_phiErr(T, dt, eT, edt));
@@ -192,14 +200,6 @@ Bool_t Bode::SetFreqVec(std::vector<Double_t> Freq, std::vector<Double_t> ErrFre
         return false;
     }
 
-    Int_t kSizePG = sizeof(fPointFreq)/sizeof(Double_t);
-    Int_t kSizeEPG = sizeof(fPErrFreq)/sizeof(Double_t);
-
-    if(Freq.size()!=kSizePG || ErrFreq.size()!=kSizeEPG){
-        printf("%s", Logger::error(Form("size of Freq input vec: %lu, size of Freq copy vec: %d", Freq.size(), kSizePG)));
-        printf("%s", Logger::error(Form("size of ErrFreq input vec: %lu, size of ErrFreq copy vec: %d", Freq.size(), kSizePG)));
-        return false;
-    }
     return true;
 }
 
@@ -207,8 +207,8 @@ Bool_t Bode::SetFunctions(){
 
     fGain = new TGraphErrors(fNpoints, fPointFreq, fPointGain, fPErrFreq, fPErrGain);
     fPhase = new TGraphErrors(fNpoints, fPointFreq, fPointPhase, fPErrFreq, fPErrPhase);
-    fGainFit = new TF1("gainfit", _gainfit, fmin, fmax);
-    fPhaseFit = new TF1("phasefit", _phasefit, fmin, fmax);
+    fGainFit = new TF1("gain_fit", _gainfit);
+    fPhaseFit = new TF1("phase_fit", _phasefit);
 
     return true;
 }
@@ -231,15 +231,29 @@ Bool_t Bode::SetGainVec(std::vector<Double_t> Gain, std::vector<Double_t> ErrGai
         return false;
     }
 
-    Int_t kSizePG = sizeof(fPointGain)/sizeof(Double_t);
-    Int_t kSizeEPG = sizeof(fPErrGain)/sizeof(Double_t);
-
-    if(Gain.size()!=kSizePG || ErrGain.size()!=kSizeEPG){
-        printf("%s", Logger::error(Form("size of Gain input vec: %lu, size of Gain copy vec: %d", Gain.size(), kSizePG)));
-        printf("%s", Logger::error(Form("size of ErrGain input vec: %lu, size of ErrGain copy vec: %d", Gain.size(), kSizePG)));
-        return false;
-    }
     return true;
+}
+
+void Bode::SetParGain(Double_t gain, Double_t cutoff, Double_t Q){
+
+    if(_islowhighpass){
+        fGainFit->SetParameters(gain, cutoff);
+    }else{
+        fGainFit->SetParameters(gain, cutoff, Q);
+    }
+
+    return;
+}
+
+void Bode::SetParPhase(Double_t gain, Double_t cutoff, Double_t Q){
+
+    if(_islowhighpass){
+        fPhaseFit->SetParameters(gain, cutoff);
+    }else{
+        fPhaseFit->SetParameters(gain, cutoff, Q);
+    }
+
+    return;
 }
 
 Bool_t Bode::SetPhaseVec(std::vector<Double_t> Phase, std::vector<Double_t> ErrPhase){
@@ -260,14 +274,6 @@ Bool_t Bode::SetPhaseVec(std::vector<Double_t> Phase, std::vector<Double_t> ErrP
         return false;
     }
 
-    Int_t kSizePG = sizeof(fPointPhase)/sizeof(Double_t);
-    Int_t kSizeEPG = sizeof(fPErrPhase)/sizeof(Double_t);
-
-    if(Phase.size()!=kSizePG || ErrPhase.size()!=kSizeEPG){
-        printf("%s", Logger::error(Form("size of Phase input vec: %lu, size of Phase copy vec: %d", Phase.size(), kSizePG)));
-        printf("%s", Logger::error(Form("size of ErrPhase input vec: %lu, size of ErrPhase copy vec: %d", Phase.size(), kSizePG)));
-        return false;
-    }
     return true;
 }
 
@@ -295,7 +301,16 @@ void Bode::SetSystem(System_t sys){
 
 Bool_t Bode::FitGain(Option_t *option, Option_t *goption, Axis_t xmin, Axis_t xmax){
 
-    fGain->Fit("gainfit", option, goption, xmin, xmax);
+    fGain->Fit("gain_fit");
+    _hasfitted = true;
+
+    return true;
+}
+
+Bool_t Bode::FitPhase(Option_t *option, Option_t *goption, Axis_t xmin, Axis_t xmax){
+
+    fPhase->Fit("phase_fit");
+    _hasfitted = true;
 
     return true;
 }
