@@ -18,6 +18,7 @@ find_path(LAB_PATH
 set(CMAKE_CXX_FLAGS ${ROOT_CXX_FLAGS})
 
 set(BODEINC
+    BodeDataSim/SimEngine.h
     Bode/Analysis.h)
     
 set(BODESRC
