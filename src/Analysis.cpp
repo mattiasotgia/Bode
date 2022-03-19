@@ -21,7 +21,7 @@
 #include<TLegend.h>
 #include<TLine.h>
 
-#include"Analysis.h"
+#include"Bode/Analysis.h"
 #include"ErrorAnalysis.h"
 #include"LabPlot.h" // set_atlas_style() called from here
 #include"Logger.h"
@@ -173,17 +173,20 @@ Bool_t Bode::ReadInput(const char *filename, Option_t *option){
         tmpphaseerr.push_back(get_phiErr(T, dt, eT, edt));
     }
 
-    SetGainVec(tmpgain, tmpgainerr);
-    SetPhaseVec(tmpphase, tmpphaseerr);
     SetFreqVec(tmpfreq, tmpfreqerr);
+    SetPhaseVec(tmpphase, tmpphaseerr);
+    SetGainVec(tmpgain, tmpgainerr);
     SetFunctions();
 
     return true;
 }
 
 Bool_t Bode::SetFreqVec(std::vector<Double_t> Freq, std::vector<Double_t> ErrFreq){
-    fPointFreq = Freq.data(); 
-    fPErrFreq = ErrFreq.data();
+    fPointFreq = Freq;
+    fPErrFreq = ErrFreq;
+
+    // fPointFreq = new TVectorD(Freq.size(), Freq.data());
+    // fPErrFreq = new TVectorD(ErrFreq.size(), ErrFreq.data());
 
     if (fNpoints == -1){
         fNpoints = Freq.size();
@@ -205,8 +208,8 @@ Bool_t Bode::SetFreqVec(std::vector<Double_t> Freq, std::vector<Double_t> ErrFre
 
 Bool_t Bode::SetFunctions(){
 
-    fGain = new TGraphErrors(fNpoints, fPointFreq, fPointGain, fPErrFreq, fPErrGain);
-    fPhase = new TGraphErrors(fNpoints, fPointFreq, fPointPhase, fPErrFreq, fPErrPhase);
+    fGain = new TGraphErrors(fNpoints, fPointFreq.data(), fPointGain.data(), fPErrFreq.data(), fPErrGain.data());
+    fPhase = new TGraphErrors(fNpoints, fPointFreq.data(), fPointPhase.data(), fPErrFreq.data(), fPErrPhase.data());
     fGainFit = new TF1("gain_fit", _gainfit);
     fPhaseFit = new TF1("phase_fit", _phasefit);
 
@@ -214,8 +217,11 @@ Bool_t Bode::SetFunctions(){
 }
 
 Bool_t Bode::SetGainVec(std::vector<Double_t> Gain, std::vector<Double_t> ErrGain){
-    fPointGain = Gain.data(); 
-    fPErrGain = ErrGain.data();
+    fPointGain = Gain;
+    fPErrGain = ErrGain;
+
+    // fPointGain = new TVectorD(Gain.size(), Gain.data());
+    // fPErrGain = new TVectorD(ErrGain.size(), ErrGain.data());
 
     if (fNpoints == -1){
         fNpoints = Gain.size();
@@ -257,8 +263,11 @@ void Bode::SetParPhase(Double_t gain, Double_t cutoff, Double_t Q){
 }
 
 Bool_t Bode::SetPhaseVec(std::vector<Double_t> Phase, std::vector<Double_t> ErrPhase){
-    fPointPhase = Phase.data(); 
-    fPErrPhase = ErrPhase.data();
+    fPointPhase = Phase;
+    fPErrPhase = ErrPhase;
+
+    // fPointPhase = new TVectorD(Phase.size(), Phase.data());
+    // fPErrPhase = new TVectorD(ErrPhase.size(), ErrPhase.data());
 
     if (fNpoints == -1){
         fNpoints = Phase.size();
@@ -311,6 +320,12 @@ Bool_t Bode::FitPhase(Option_t *option, Option_t *goption, Axis_t xmin, Axis_t x
 
     fPhase->Fit("phase_fit");
     _hasfitted = true;
+
+    gCutoff = fPhaseFit->GetParameter(_CutoffPar);
+    gErrCutoff = fPhaseFit->GetParError(_CutoffPar);
+
+    gGain = fPhaseFit->GetParameter(_GainPar);
+    gErrGain = fPhaseFit->GetParError(_GainPar);
 
     return true;
 }

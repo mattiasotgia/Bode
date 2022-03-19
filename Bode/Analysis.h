@@ -49,8 +49,8 @@ private:
     // phase and gain fit formula
     const char         *_gainfit  = ""; 
     const char         *_phasefit = "";
-    NPar_t              _CutoffPar = 0;
-    NPar_t              _GainPar = 1;
+    NPar_t              _CutoffPar = 1;
+    NPar_t              _GainPar = 0;
     NPar_t              _QPar = 2;
 
     // computational values;
@@ -74,12 +74,12 @@ private:
     Double_t            fmin = (0.0);   ///> minimum for frequency range
     Double_t            fmax = (1.0);   ///> maximum for frequency range
     Double_t            fNpoints = -1;       ///> points in graph
-    Double_t           *fPointGain;     ///>[fNpoints] array for gain points
-    Double_t           *fPErrGain;      ///>[fNpoints] array for error gain points
-    Double_t           *fPointPhase;    ///>[fNpoints] array for phase points
-    Double_t           *fPErrPhase;     ///>[fNpoints] array for error phase points
-    Double_t           *fPointFreq;     ///>[fNpoints] array for frequency points
-    Double_t           *fPErrFreq;      ///>[fNpoints] array for error frequency points
+    std::vector<double> fPointGain;     ///>[fNpoints] array for gain points
+    std::vector<double> fPErrGain;      ///>[fNpoints] array for error gain points
+    std::vector<double> fPointPhase;    ///>[fNpoints] array for phase points
+    std::vector<double> fPErrPhase;     ///>[fNpoints] array for error phase points
+    std::vector<double> fPointFreq;     ///>[fNpoints] array for frequency points
+    std::vector<double> fPErrFreq;      ///>[fNpoints] array for error frequency points
 
     // miscellaneous
     void                _apply_LineColor();
