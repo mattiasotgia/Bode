@@ -18,14 +18,14 @@ find_path(LAB_PATH
 set(CMAKE_CXX_FLAGS ${ROOT_CXX_FLAGS})
 
 set(BODEINC
-    include/Analysis.h)  
+    Bode/Analysis.h)
     
 set(BODESRC
     src/Analysis.cpp)
 
 add_compile_options(-I${ROOT_INCLUDE_DIRS})
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 add_library(Bode SHARED ${BODESRC})
 
 target_link_libraries(Bode ${ROOT_LIBRARIES} ${ERR_A_LIB} ${LAB_LIB})

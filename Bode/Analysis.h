@@ -62,7 +62,7 @@ private:
     Double_t            gErrGain;   ///> Gain value error
 
     /// graphical objects []
-    TCanvas            *fFigure;
+    TCanvas            *fFigure = new TCanvas("fFigure", "", 800, 600);
     TPad               *fGainPad;
     TPad               *fPhasePad;
     TGraphErrors       *fGain;
