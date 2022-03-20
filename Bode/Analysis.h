@@ -39,47 +39,47 @@ private:
 
     System_t            fSystem = "";
 
-    bool                _isfunctioncalled = false; ///> check if user called for function different from base;
-    bool                _residualOn = false;
-    bool                _islowhighpass = true;
-    bool                _hasfittedgain = false;
-    bool                _hasfittedphase = false;
+    bool                _isfunctioncalled   = false; ///> check if user called for function different from base;
+    bool                _residualOn         = false;
+    bool                _islowhighpass      = true;
+    bool                _hasfittedgain      = false;
+    bool                _hasfittedphase     = false;
 
     // font size for calling ATLASStyle
     Size_t              tsize = 25;
 
     // phase and gain fit formula
-    const char         *_gainfit  = ""; 
-    const char         *_phasefit = "";
-    NPar_t              _CutoffPar = 1;
-    NPar_t              _GainPar = 0;
-    NPar_t              _QPar = 2;
+    const char         *_gainfit    = ""; 
+    const char         *_phasefit   = "";
+    NPar_t              _CutoffPar  = 1;
+    NPar_t              _GainPar    = 0;
+    NPar_t              _QPar       = 2;
 
     const char         *label = "Preliminary";
 
     // computational values;
-    Double_t            gGBW;       ///> Gain Bandwidth coefficient
-    Double_t            gErrGBW;    ///> Gain Bandwidth coefficient error
-    Double_t            gCutoff;    ///> Cutoff value 
-    Double_t            gErrCutoff; ///> Cutoff value error
-    Double_t            gGain;      ///> Gain value
-    Double_t            gErrGain;   ///> Gain value error
+    Double_t            gGBW        = -1111; ///> Gain Bandwidth coefficient
+    Double_t            gErrGBW     = -1111; ///> Gain Bandwidth coefficient error
+    Double_t            gCutoff     = -1111; ///> Cutoff value 
+    Double_t            gErrCutoff  = -1111; ///> Cutoff value error
+    Double_t            gGain       = -1111; ///> Gain value
+    Double_t            gErrGain    = -1111; ///> Gain value error
 
     /// graphical objects []
-    TGraphErrors       *fGain;
-    TGraphErrors       *fPhase;
-    TF1                *fGainFit; 
-    TF1                *fPhaseFit;
+    TGraphErrors       *fGain       = 0;
+    TGraphErrors       *fPhase      = 0;
+    TF1                *fGainFit    = 0; 
+    TF1                *fPhaseFit   = 0;
 
-    Float_t             legendX1 = 0.2;
-    Float_t             legendY1 = 0.2;
-    Float_t             legendX2 = 0.5;
-    Float_t             legendY2 = 0.35;
+    Float_t             legendX1    = 0.2;
+    Float_t             legendY1    = 0.2;
+    Float_t             legendX2    = 0.5;
+    Float_t             legendY2    = 0.35;
 
     /// function variables declaration
     Double_t            fmin = (0.0);   ///> minimum for frequency range
     Double_t            fmax = (1.0);   ///> maximum for frequency range
-    Double_t            fNpoints = -1;       ///> points in graph
+    Double_t            fNpoints = -1111;       ///> points in graph
     std::vector<double> fPointGain;     ///>[fNpoints] array for gain points
     std::vector<double> fPErrGain;      ///>[fNpoints] array for error gain points
     std::vector<double> fPointPhase;    ///>[fNpoints] array for phase points

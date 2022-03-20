@@ -1,6 +1,8 @@
 # Bode Diagrams
 Bode diagrams visualization
 
+![License](https://img.shields.io/github/license/mattiasotgia/Bode)
+
 ## `Bode` class
 
 Declared in header file Bode/Analysis.h.
