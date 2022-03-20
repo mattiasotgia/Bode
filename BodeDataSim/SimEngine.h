@@ -15,6 +15,7 @@
 #include<Rtypes.h>
 #include<RtypesCore.h>
 
+#include<TFormula.h>
 #include<TRandom.h>
 
 #include"Logger.h"
@@ -24,15 +25,21 @@ typedef TString System_t;
 
 class SimEngine{
 private:
-    ULong_t             seed;
-    const char         *printfname = "datasimulated.txt"; ///> printing on file tmp
+    ULong_t             seed = 0;
+    const char         *printfname; ///> printing on file tmp
     System_t            fltype;
 
-    Double_t            gCutoff;
-    Double_t            gGain;
-    Double_t            gQ;
+    Double_t            gCutoff = -99999;
+    Double_t            gGain   = -99999;
+    Double_t            gQ      = -99999;
+
+    const char         *_gainformula  = ""; 
+    const char         *_phaseformula = "";
+
+    Bool_t              _islowhighpass = true;
 
     TRandom            *gen;    ///> random generator
+    TFormula           *fFunctionFilter;
 
     enum {
         lowpass     = 244089597,    // "lowpass"
@@ -42,14 +49,13 @@ private:
     };
 
 public:
-    SimEngine(): gen{TRandom()} {};
-    Bool_t              DataSim(const char *filename = printfname);
+    SimEngine();
+    Bool_t              DataSim(const char *filename = "datasim.txt");
     void                GenLowNoise();
     void                GenHighNoise();
-    Double_t            GetRandom();
     void                SetCutoff(Double_t cutoff)  { gCutoff = cutoff; }
     void                SetGain(Double_t gain)      { gGain = gain; }
-    void                SetQ(Doule_t Q)             { gQ = Q; }
+    void                SetQ(Double_t Q)             { gQ = Q; }
     void                SetFilterType(System_t filter = "lowpass");
     ~SimEngine();
 };
