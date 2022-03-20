@@ -45,9 +45,8 @@ private:
     bool                _hasfittedgain = false;
     bool                _hasfittedphase = false;
 
-    std::string         optionBode;
     // font size for calling ATLASStyle
-    Size_t              tsize = 29;
+    Size_t              tsize = 25;
 
     // phase and gain fit formula
     const char         *_gainfit  = ""; 
@@ -55,6 +54,8 @@ private:
     NPar_t              _CutoffPar = 1;
     NPar_t              _GainPar = 0;
     NPar_t              _QPar = 2;
+
+    const char         *label = "Preliminary";
 
     // computational values;
     Double_t            gGBW;       ///> Gain Bandwidth coefficient
@@ -70,6 +71,11 @@ private:
     TF1                *fGainFit; 
     TF1                *fPhaseFit;
 
+    Float_t             legendX1 = 0.2;
+    Float_t             legendY1 = 0.2;
+    Float_t             legendX2 = 0.5;
+    Float_t             legendY2 = 0.35;
+
     /// function variables declaration
     Double_t            fmin = (0.0);   ///> minimum for frequency range
     Double_t            fmax = (1.0);   ///> maximum for frequency range
@@ -83,7 +89,7 @@ private:
 
 public:
     // Bode();
-    Bode(System_t sys, Option_t *option="");                                             ///> sys: OP_AMP: 0x1 high pass, 0x2 low pass; RLC 0x101 high pass, 0x102 low pass, 0x103 band pass;
+    Bode(System_t sys);                                             ///> sys: OP_AMP: 0x1 high pass, 0x2 low pass; RLC 0x101 high pass, 0x102 low pass, 0x103 band pass;
     Bode(System_t sys, const char *filename, Option_t *option="");  ///> sys: OP_AMP: 0x1 high pass, 0x2 low pass; RLC 0x101 high pass, 0x102 low pass, 0x103 band pass;
     ~Bode();
     Bool_t              FitGain(Option_t *option="", Option_t *goption="", Axis_t xmin=0, Axis_t xmax=0);
@@ -108,6 +114,7 @@ public:
     Bool_t              SetFunctions();
     // void                SetGainFunction(const char *formula, Option_t *option="");
     Bool_t              SetGainVec(std::vector<Double_t> Gain, std::vector<Double_t> ErrGain);
+    inline void         SetLabel(Option_t *fmt) { label = fmt; }
     void                SetParGain(Double_t gain, Double_t cutoff, Double_t Q = -1);
     void                SetParPhase(Double_t gain, Double_t cutoff, Double_t Q = -1);
     // void                SetPhaseFunction(const char *formula, Option_t *option="");

@@ -17,6 +17,7 @@
 #include<TF1.h>
 #include<TGaxis.h>
 #include<TGraphErrors.h>
+#include<TMath.h>
 #include<TLatex.h>
 #include<TLegend.h>
 #include<TLine.h>
@@ -27,14 +28,12 @@
 #include"LabPlot.h" // set_atlas_style() called from here
 #include"Logger.h"
 
-Bode::Bode(System_t sys, Option_t *option){
+Bode::Bode(System_t sys){
     fSystem = sys;
     // set_atlas_style(tsize);
 
     SetSystem(sys);
     set_atlas_style(tsize);
-
-    optionBode = option;
 
     // We cant do much more, since its impossible to allocate memory for graphs, use functions!
 }
@@ -48,28 +47,31 @@ Bode::Bode(System_t sys, const char *filename, Option_t *option){
 
     ReadInput(filename, option);
     set_atlas_style(tsize);
-    optionBode = option;
 
 }
 
 void Bode::Plot(const char *filename, bool plotphase, bool plotgain){
 
     TCanvas *fFigure = new TCanvas("fFigure", "", 800, 600);
+    TLine *cutoff_line = new TLine();
+    cutoff_line->SetLineStyle(kDashed);
 
     fFigure->cd();
 
     if(plotgain && plotphase) gStyle->SetPadRightMargin(0.16);
 
     TLatex *text = new TLatex();
-    TLegend *legend = new TLegend();
+    text->SetTextAngle(90);
+    TLegend *legend = new TLegend(legendX1, legendY1, legendX2, legendY2);
+    legend->SetFillColorAlpha(0, 0.75);
+    legend->SetTextSize(20);
 
-    legend->SetHeader(Form("#bf{Biagramma di Bode} %s", optionBode.c_str()));
+    legend->SetHeader(Form("#bf{Bode visualization} %s", label));
     
     fFigure->cd();
     TPad *fGainPad = new TPad("fGainPad", "", 0, 0, 1, 1);
     fGainPad->SetLogx();
     fGainPad->SetLogy();
-    fGainPad->SetGridx();
 
     fFigure->cd();
     TPad *fPhasePad = new TPad("fPhasePad", "", 0, 0, 1, 1);
@@ -89,6 +91,10 @@ void Bode::Plot(const char *filename, bool plotphase, bool plotgain){
 
         fGain->Draw("ap");
         if(_hasfittedgain) { fGainFit->Draw("same"); }
+        legend->AddEntry(fGain, "Gain", "LPE");
+        // text->DrawLatex(gCutoff, fGainPad->GetUymin(), "cutoff");
+        cutoff_line->DrawLine(gCutoff, fGainPad->GetUymin(), gCutoff, 
+        fGainPad->GetUymax()-0.5*(fGainPad->GetUymax()-fGainPad->GetUymax())/0.79);
         gPad->Update();
 
         if(plotphase){
@@ -96,10 +102,10 @@ void Bode::Plot(const char *filename, bool plotphase, bool plotgain){
             
             Double_t xmin = fGainPad->GetUxmin();
             Double_t xmax = fGainPad->GetUxmax();
-            std::cout << xmax << std::endl;
             Double_t dx = (xmax - xmin) / 0.68; // 10 percent margins left and right
-            Double_t ymin = fPhase->GetHistogram()->GetMinimum();
-            Double_t ymax = fPhase->GetHistogram()->GetMaximum();
+            Double_t ymin = TMath::MinElement(fPhase->GetN(), fPhase->GetY());
+            Double_t ymax = TMath::MaxElement(fPhase->GetN(), fPhase->GetY());
+            std::cout << "Phase range: [" << ymin << ", " << ymax << "]" << std::endl;
             Double_t dy = (ymax - ymin) / 0.79; // 10 percent margins top and bottom
             fPhasePad->Range(xmin-0.16*dx, ymin-0.16*dy, xmax+0.16*dx, ymax+0.05*dy);
 
@@ -109,6 +115,8 @@ void Bode::Plot(const char *filename, bool plotphase, bool plotgain){
 
             fPhase->Draw("p");
             if(_hasfittedphase) { fPhaseFit->Draw("same"); }
+            fPhase->GetYaxis()->SetRangeUser(ymin-0.16*dy+0.1*dy, ymax+0.05*dy+0.1*dy);
+            legend->AddEntry(fPhase, "Phase", "LPE");
             gPad->Update();
 
             Style_t tfont = fGain->GetHistogram()->GetYaxis()->GetTitleFont();
@@ -118,6 +126,7 @@ void Bode::Plot(const char *filename, bool plotphase, bool plotgain){
 
             axis = new TGaxis(std::pow(10, xmax), ymin, std::pow(10, xmax), ymax, ymin, ymax, 510, "+L");
             axis->SetTitle("Phase [rad]");
+            axis->CenterTitle();
             axis->SetTitleOffset(1.5);
             axis->SetTitleFont(tfont);
             axis->SetTitleSize(tsize);
@@ -133,8 +142,9 @@ void Bode::Plot(const char *filename, bool plotphase, bool plotgain){
         fPhasePad->cd();
 
         fPhase->Draw("ap");
-
         if(_hasfittedphase) { fPhaseFit->Draw("same"); }
+        legend->AddEntry(fPhase, "Phase", "LPE");
+        gPad->Update();
     }
 
     fFigure->cd();
@@ -155,6 +165,8 @@ void Bode::Plot(const char *filename, bool plotphase, bool plotgain){
     fPhase->SetMarkerColor(kRed);
     fPhaseFit->SetMarkerColor(kRed);
     fPhaseFit->SetLineStyle(kDashed);
+
+    legend->Draw();
 
     fFigure->Draw();
     fFigure->Print(filename = ""? Form("%s.pdf", fFigure->GetName()):filename);
@@ -248,7 +260,11 @@ Bool_t Bode::SetFunctions(){
     fPhaseFit = new TF1("phase_fit", _phasefit);
 
     fGain->SetTitle(";Frequency [Hz];Gain V_{out}/V_{in}");
+    fGain->GetXaxis()->CenterTitle();
+    fGain->GetYaxis()->CenterTitle();
     fPhase->SetTitle(";Frequency [Hz];Phase [rad]");
+    fPhase->GetXaxis()->CenterTitle();
+    fPhase->GetYaxis()->CenterTitle();
 
     // debugging **************************************************************
     // for(int j = 0; j < fGain->GetN(); j++){
@@ -350,7 +366,7 @@ void Bode::SetSystem(System_t sys){
             break;
         case bandpass:
             _gainfit = "[0]/sqrt(1+pow([2], 2)*pow(x/[1]-[1]/x, 2))"; // [0] gain, [1] cutoff/peak frequency, [2] Q factor
-            _phasefit = "-atan(x/[1]-[1]/x)";
+            _phasefit = "-atan([0]*(x/[1]-[1]/x))";
             _islowhighpass = false;
             break;
         default:
