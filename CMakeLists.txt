@@ -18,11 +18,13 @@ find_path(LAB_PATH
 set(CMAKE_CXX_FLAGS ${ROOT_CXX_FLAGS})
 
 set(BODEINC
-    BodeDataSim/SimEngine.h
     Bode/Analysis.h)
-    
+set(SIMINC
+    BodeDataSim/SimEngine.h)
+
 set(BODESRC
-    src/Analysis.cpp)
+    src/Analysis.cpp
+    src/Simulate.cpp)
 
 add_compile_options(-I${ROOT_INCLUDE_DIRS})
 
@@ -34,5 +36,6 @@ target_include_directories(Bode PUBLIC ${ERR_A_PATH} ${LAB_PATH})
 
 install(TARGETS Bode DESTINATION /usr/local/lib/)
 install(FILES ${BODEINC} DESTINATION include/Bode)
+install(FILES ${SIMINC} DESTINATION include/BodeDataSim)
 
 

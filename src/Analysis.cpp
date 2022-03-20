@@ -20,17 +20,21 @@
 #include<TLatex.h>
 #include<TLegend.h>
 #include<TLine.h>
+#include<TStyle.h>
 
 #include"Bode/Analysis.h"
 #include"ErrorAnalysis.h"
 #include"LabPlot.h" // set_atlas_style() called from here
 #include"Logger.h"
 
-Bode::Bode(System_t sys){
+Bode::Bode(System_t sys, Option_t *option){
     fSystem = sys;
     // set_atlas_style(tsize);
 
     SetSystem(sys);
+    set_atlas_style(tsize);
+
+    optionBode = option;
 
     // We cant do much more, since its impossible to allocate memory for graphs, use functions!
 }
@@ -43,60 +47,77 @@ Bode::Bode(System_t sys, const char *filename, Option_t *option){
     SetSystem(sys);
 
     ReadInput(filename, option);
+    set_atlas_style(tsize);
+    optionBode = option;
 
 }
 
-void Bode::Plot(bool plotphase, bool plotgain){
-    fFigure = new TCanvas("fFigure", "", 800, 600);
+void Bode::Plot(const char *filename, bool plotphase, bool plotgain){
+
+    TCanvas *fFigure = new TCanvas("fFigure", "", 800, 600);
+
     fFigure->cd();
+
+    if(plotgain && plotphase) gStyle->SetPadRightMargin(0.16);
+
     TLatex *text = new TLatex();
     TLegend *legend = new TLegend();
+
+    legend->SetHeader(Form("#bf{Biagramma di Bode} %s", optionBode.c_str()));
     
-    fGainPad = new TPad("fGainPad", "", 0, 0, 1, 1);
+    fFigure->cd();
+    TPad *fGainPad = new TPad("fGainPad", "", 0, 0, 1, 1);
     fGainPad->SetLogx();
     fGainPad->SetLogy();
-    fPhasePad = new TPad("fPhasePad", "", 0, 0, 1, 1);
+    fGainPad->SetGridx();
+
+    fFigure->cd();
+    TPad *fPhasePad = new TPad("fPhasePad", "", 0, 0, 1, 1);
     fPhasePad->SetLogx();
     fPhasePad->SetFillStyle(4000);
+
+
+    fFigure->cd();
 
     TGaxis *axis;
 
     if(plotgain){
-        if(plotphase){
-            set_atlas_style(tsize, false);
-        } else {
-            set_atlas_style(tsize);
-        }
-        _apply_LineColor();
 
-        fGainPad->cd();
-        fGain->Draw("ap");
-        if(_hasfitted) { fGainFit->Draw("same"); }
-        fGainPad->Modified();
+        fFigure->cd();
         fGainPad->Draw();
+        fGainPad->cd();
+
+        fGain->Draw("ap");
+        if(_hasfittedgain) { fGainFit->Draw("same"); }
+        gPad->Update();
+
         if(plotphase){
             fGainPad->SetTicky(0);
             
             Double_t xmin = fGainPad->GetUxmin();
             Double_t xmax = fGainPad->GetUxmax();
+            std::cout << xmax << std::endl;
             Double_t dx = (xmax - xmin) / 0.68; // 10 percent margins left and right
             Double_t ymin = fPhase->GetHistogram()->GetMinimum();
             Double_t ymax = fPhase->GetHistogram()->GetMaximum();
             Double_t dy = (ymax - ymin) / 0.79; // 10 percent margins top and bottom
             fPhasePad->Range(xmin-0.16*dx, ymin-0.16*dy, xmax+0.16*dx, ymax+0.05*dy);
 
+            fFigure->cd();
+            fPhasePad->Draw();
             fPhasePad->cd();
 
-            fPhase->Draw("ap");
-            if(_hasfitted) { fPhaseFit->Draw("same"); }
+            fPhase->Draw("p");
+            if(_hasfittedphase) { fPhaseFit->Draw("same"); }
+            gPad->Update();
 
             Style_t tfont = fGain->GetHistogram()->GetYaxis()->GetTitleFont();
             Float_t tsize = fGain->GetHistogram()->GetYaxis()->GetTitleSize();
             Style_t lfont = fGain->GetHistogram()->GetYaxis()->GetLabelFont();
             Float_t lsize = fGain->GetHistogram()->GetYaxis()->GetLabelSize();
 
-            axis = new TGaxis(xmax, ymin, xmax, ymax, ymin, ymax, 510, "+L");
-            axis->SetTitle("Phase");
+            axis = new TGaxis(std::pow(10, xmax), ymin, std::pow(10, xmax), ymax, ymin, ymax, 510, "+L");
+            axis->SetTitle("Phase [rad]");
             axis->SetTitleOffset(1.5);
             axis->SetTitleFont(tfont);
             axis->SetTitleSize(tsize);
@@ -104,34 +125,47 @@ void Bode::Plot(bool plotphase, bool plotgain){
             axis->SetLabelSize(lsize);
             axis->SetMaxDigits(1);
             axis->Draw();
-            fPhasePad->Modified();
-            fPhasePad->Draw();
-            gPad->Update();
         }
     } else {
         // plotgain is false
 
-        set_atlas_style(tsize);
-        _apply_LineColor();
-
+        fFigure->cd();
         fPhasePad->cd();
+
         fPhase->Draw("ap");
-        if(_hasfitted) { fPhaseFit->Draw("same"); }
-        fPhasePad->Modified();
-        fPhasePad->Draw();
-        gPad->Update();
+
+        if(_hasfittedphase) { fPhaseFit->Draw("same"); }
     }
+
+    fFigure->cd();
     fGainPad->Draw();
+    fGainPad->Modified();
+    fGainPad->Update();
+
     fPhasePad->Draw();
+    fPhasePad->Modified();
+    fPhasePad->Update();
+
+    fGainFit->SetLineColor(kBlack);
+    fGain->SetMarkerStyle(20);
+    fGain->SetMarkerSize(0.8);
+    fPhase->SetMarkerStyle(20);
+    fPhase->SetMarkerSize(0.8);
+    fPhase->SetLineColor(kRed);
+    fPhase->SetMarkerColor(kRed);
+    fPhaseFit->SetMarkerColor(kRed);
+    fPhaseFit->SetLineStyle(kDashed);
+
     fFigure->Draw();
+    fFigure->Print(filename = ""? Form("%s.pdf", fFigure->GetName()):filename);
 }
 
-void Bode::PlotGain(){
-    Plot(false);
+void Bode::PlotGain(const char *filename){
+    Plot(filename, false);
 }
 
-void Bode::PlotPhase(){
-    Plot(true, false);
+void Bode::PlotPhase(const char *filename){
+    Plot(filename, true, false);
 }
 
 double get_VRangeErr(double errPercent, int partitions, double range1){return errPercent * partitions *  range1;}
@@ -213,6 +247,23 @@ Bool_t Bode::SetFunctions(){
     fGainFit = new TF1("gain_fit", _gainfit);
     fPhaseFit = new TF1("phase_fit", _phasefit);
 
+    fGain->SetTitle(";Frequency [Hz];Gain V_{out}/V_{in}");
+    fPhase->SetTitle(";Frequency [Hz];Phase [rad]");
+
+    // debugging **************************************************************
+    // for(int j = 0; j < fGain->GetN(); j++){
+    //     std::cout << fGain->GetX()[j] << "\t" << fGain->GetEX()[j] << "\t" 
+    //               << fGain->GetY()[j] << "\t" << fGain->GetEY()[j] << "\t" 
+    //               <<std::endl;
+    // }
+    
+    // for(int j = 0; j < fPhase->GetN(); j++){
+    //     std::cout << fPhase->GetX()[j] << "\t" << fPhase->GetEX()[j] << "\t" 
+    //               << fPhase->GetY()[j] << "\t" << fPhase->GetEY()[j] << "\t" 
+    //               <<std::endl;
+    // }
+    // debugging **************************************************************
+
     return true;
 }
 
@@ -288,7 +339,7 @@ Bool_t Bode::SetPhaseVec(std::vector<Double_t> Phase, std::vector<Double_t> ErrP
 
 void Bode::SetSystem(System_t sys){
     fSystem = sys;
-    switch(sys.Hash()){
+    switch(fSystem.Hash()){
         case lowpass:
             _gainfit = "[0]/sqrt(1+pow(x/[1], 2))"; // [0] gain, [1] cutoff
             _phasefit = "";
@@ -299,7 +350,7 @@ void Bode::SetSystem(System_t sys){
             break;
         case bandpass:
             _gainfit = "[0]/sqrt(1+pow([2], 2)*pow(x/[1]-[1]/x, 2))"; // [0] gain, [1] cutoff/peak frequency, [2] Q factor
-            _phasefit = "";
+            _phasefit = "-atan(x/[1]-[1]/x)";
             _islowhighpass = false;
             break;
         default:
@@ -311,7 +362,13 @@ void Bode::SetSystem(System_t sys){
 Bool_t Bode::FitGain(Option_t *option, Option_t *goption, Axis_t xmin, Axis_t xmax){
 
     fGain->Fit("gain_fit");
-    _hasfitted = true;
+    _hasfittedgain = true;
+
+    gCutoff = fGainFit->GetParameter(_CutoffPar);
+    gErrCutoff = fGainFit->GetParError(_CutoffPar);
+
+    gGain = fGainFit->GetParameter(_GainPar);
+    gErrGain = fGainFit->GetParError(_GainPar);
 
     return true;
 }
@@ -319,13 +376,13 @@ Bool_t Bode::FitGain(Option_t *option, Option_t *goption, Axis_t xmin, Axis_t xm
 Bool_t Bode::FitPhase(Option_t *option, Option_t *goption, Axis_t xmin, Axis_t xmax){
 
     fPhase->Fit("phase_fit");
-    _hasfitted = true;
+    _hasfittedphase = true;
 
-    gCutoff = fPhaseFit->GetParameter(_CutoffPar);
-    gErrCutoff = fPhaseFit->GetParError(_CutoffPar);
+    // gCutoff = fPhaseFit->GetParameter(_CutoffPar);
+    // gErrCutoff = fPhaseFit->GetParError(_CutoffPar);
 
-    gGain = fPhaseFit->GetParameter(_GainPar);
-    gErrGain = fPhaseFit->GetParError(_GainPar);
+    // gGain = fPhaseFit->GetParameter(_GainPar);
+    // gErrGain = fPhaseFit->GetParError(_GainPar);
 
     return true;
 }

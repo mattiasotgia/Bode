@@ -14,6 +14,7 @@
 
 #include<iostream>
 #include<vector>
+#include<string>
 
 #include<TCanvas.h>
 #include<TF1.h>
@@ -41,8 +42,10 @@ private:
     bool                _isfunctioncalled = false; ///> check if user called for function different from base;
     bool                _residualOn = false;
     bool                _islowhighpass = true;
-    bool                _hasfitted = false;
+    bool                _hasfittedgain = false;
+    bool                _hasfittedphase = false;
 
+    std::string         optionBode;
     // font size for calling ATLASStyle
     Size_t              tsize = 29;
 
@@ -62,9 +65,6 @@ private:
     Double_t            gErrGain;   ///> Gain value error
 
     /// graphical objects []
-    TCanvas            *fFigure = new TCanvas("fFigure", "", 800, 600);
-    TPad               *fGainPad;
-    TPad               *fPhasePad;
     TGraphErrors       *fGain;
     TGraphErrors       *fPhase;
     TF1                *fGainFit; 
@@ -81,11 +81,9 @@ private:
     std::vector<double> fPointFreq;     ///>[fNpoints] array for frequency points
     std::vector<double> fPErrFreq;      ///>[fNpoints] array for error frequency points
 
-    // miscellaneous
-    void                _apply_LineColor();
 public:
     // Bode();
-    Bode(System_t sys);                                             ///> sys: OP_AMP: 0x1 high pass, 0x2 low pass; RLC 0x101 high pass, 0x102 low pass, 0x103 band pass;
+    Bode(System_t sys, Option_t *option="");                                             ///> sys: OP_AMP: 0x1 high pass, 0x2 low pass; RLC 0x101 high pass, 0x102 low pass, 0x103 band pass;
     Bode(System_t sys, const char *filename, Option_t *option="");  ///> sys: OP_AMP: 0x1 high pass, 0x2 low pass; RLC 0x101 high pass, 0x102 low pass, 0x103 band pass;
     ~Bode();
     Bool_t              FitGain(Option_t *option="", Option_t *goption="", Axis_t xmin=0, Axis_t xmax=0);
@@ -97,10 +95,10 @@ public:
     inline Double_t     GetErrGBW()     const { return gErrGBW; }
     inline Double_t     GetGain()       const { return gGain; }
     inline Double_t     GetGBW()        const { return gGBW; }
-    void                Plot(bool plotphase = true, bool plotgain = true);
-    void                PlotGain();
-    void                PlotPhase();
-    Bool_t              ReadInput(const char *filename, Option_t *option="");       ///> read input for both phase and gain data 
+    void                Plot(const char *filename = "", bool plotphase = true, bool plotgain = true);
+    void                PlotGain(const char *filename = "");
+    void                PlotPhase(const char *filename = "");
+    Bool_t              ReadInput(const char *filename = "", Option_t *option="");       ///> read input for both phase and gain data 
     // bool                ReadInputGain(const char *filename, Option_t *option="");   ///> read input for gain data
     // bool                ReadInputPhase(const char *filename, Option_t *option="");  ///> read input for phase data
     // bool                ReadInputRDF()  // TO BE IMPLEMENTED
@@ -114,20 +112,8 @@ public:
     void                SetParPhase(Double_t gain, Double_t cutoff, Double_t Q = -1);
     // void                SetPhaseFunction(const char *formula, Option_t *option="");
     Bool_t              SetPhaseVec(std::vector<Double_t> Phase, std::vector<Double_t> ErrPhase);
-    void                SetLogx();
-    void                SetLogy();
     void                SetSystem(System_t sys);
     inline void         SetResidual(bool residual = true) { _residualOn = residual; }
 };
-
-void Bode::_apply_LineColor(){
-    fGain->SetTitle(";Frequency;Gain");
-    fPhase->SetTitle(";Frequency;Phase");
-    fGainFit->SetLineColor(kBlack);
-    fPhase->SetLineColor(kRed);
-    fPhase->SetMarkerColor(kRed);
-    fPhaseFit->SetMarkerColor(kRed);
-    fPhaseFit->SetLineStyle(kDashed);
-}
 
 #endif
