@@ -234,7 +234,7 @@ Bool_t Bode::SetFreqVec(std::vector<Double_t> Freq, std::vector<Double_t> ErrFre
     // fPointFreq = new TVectorD(Freq.size(), Freq.data());
     // fPErrFreq = new TVectorD(ErrFreq.size(), ErrFreq.data());
 
-    if (fNpoints == -1){
+    if (fNpoints == -1111){
         fNpoints = Freq.size();
     }else{
         if(Freq.size() != fNpoints){
@@ -290,7 +290,7 @@ Bool_t Bode::SetGainVec(std::vector<Double_t> Gain, std::vector<Double_t> ErrGai
     // fPointGain = new TVectorD(Gain.size(), Gain.data());
     // fPErrGain = new TVectorD(ErrGain.size(), ErrGain.data());
 
-    if (fNpoints == -1){
+    if (fNpoints == -1111){
         fNpoints = Gain.size();
     }else{
         if(Gain.size() != fNpoints){
@@ -336,7 +336,7 @@ Bool_t Bode::SetPhaseVec(std::vector<Double_t> Phase, std::vector<Double_t> ErrP
     // fPointPhase = new TVectorD(Phase.size(), Phase.data());
     // fPErrPhase = new TVectorD(ErrPhase.size(), ErrPhase.data());
 
-    if (fNpoints == -1){
+    if (fNpoints == -1111){
         fNpoints = Phase.size();
     }else{
         if(Phase.size() != fNpoints){

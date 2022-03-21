@@ -9,10 +9,10 @@ Declared in header file Bode/Analysis.h.
 
 ### Usage
 
-Given a input file (ìnput.txt` in the example below) in the format 
+Given a input file (`input.txt` in the example below) in the format 
 
 ```
-V_out   V_out(full-scale)   V_in   V_in(full-scale)   T   T(full-scale)   dt   dt(full-scale)
+V_in   V_in(full-scale)   V_out   V_out(full-scale)   T   T(full-scale)   dt   dt(full-scale)
 ```
 
 it produces the following image output
