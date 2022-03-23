@@ -66,7 +66,7 @@ void Bode::Plot(const char *filename, bool plotphase, bool plotgain){
     legend->SetFillColorAlpha(0, 0.75);
     legend->SetTextSize(20);
 
-    legend->SetHeader(Form("#bf{Bode visualization} %s", label));
+    legend->SetHeader(Form("#bf{Bode visualization} #it{%s}", label));
     
     fFigure->cd();
     TPad *fGainPad = new TPad("fGainPad", "", 0, 0, 1, 1);
@@ -147,15 +147,6 @@ void Bode::Plot(const char *filename, bool plotphase, bool plotgain){
         gPad->Update();
     }
 
-    fFigure->cd();
-    fGainPad->Draw();
-    fGainPad->Modified();
-    fGainPad->Update();
-
-    fPhasePad->Draw();
-    fPhasePad->Modified();
-    fPhasePad->Update();
-
     fGainFit->SetLineColor(kBlack);
     fGain->SetMarkerStyle(20);
     fGain->SetMarkerSize(0.8);
@@ -166,10 +157,19 @@ void Bode::Plot(const char *filename, bool plotphase, bool plotgain){
     fPhaseFit->SetMarkerColor(kRed);
     fPhaseFit->SetLineStyle(kDashed);
 
+    fFigure->cd();
+    fGainPad->Draw();
+    fGainPad->Modified();
+    fGainPad->Update();
+
+    fPhasePad->Draw();
+    fPhasePad->Modified();
+    fPhasePad->Update();
+
     legend->Draw();
 
     fFigure->Draw();
-    fFigure->Print(filename = ""? Form("%s.pdf", fFigure->GetName()):filename);
+    fFigure->Print((strcmp(filename, "") == 0)? Form("%s.pdf", fFigure->GetName()):filename);
 }
 
 void Bode::PlotGain(const char *filename){

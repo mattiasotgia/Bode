@@ -46,7 +46,7 @@ private:
     bool                _hasfittedphase     = false;
 
     // font size for calling ATLASStyle
-    Size_t              tsize = 25;
+    Size_t              tsize = 30;
 
     // phase and gain fit formula
     const char         *_gainfit    = ""; 
